@@ -1,86 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
+#include "individual.h"
+#include "genetic_algorithm.h"
 
 #define T 10             // Número de generaciones (criterio de paro)
-#define MIU 100          // Tamaño de la población (número de padres)
-#define NB 10            // Número de bits por individuo
-#define PCR 0.9          // Probabilidad de cruce
-#define PMU 1.0 / NB     // Probabilidad de mutación por bit
-#define SCALE 0.01       // Factor para pasar de binario a x real:   x = (entero) * SCALE
-
-// Definimos una estructura para representar a un individuo
-typedef struct {
-    int chromosome[NB];  // Cromosoma binario
-    double fitness;      // Valor de fitness
-    double x;            // Valor real decodificado
-} Individual;
-
-// Función objetivo a maximizar: f(x) = 30 - (x-5)^2 
-double fitness_function(double x) {
-    return 30.0 - (x - 5.0) * (x - 5.0);
-}
-
-/* Genera un cromosoma binario aleatorio */
-void random_chromosome(Individual *ind) {
-    for (int i = 0; i < NB; i++)
-        ind->chromosome[i] = rand() % 2;
-}
-
-/* Decodifica un cromosoma binario a un valor real */
-void decode(Individual *ind) {
-    double value = 0.0;
-    double power_of_2 = 1.0; // 2^0
-
-    for (int i = NB - 1; i >= 0; i--) { // Recorre el cromosoma de derecha a izquierda
-        if (ind->chromosome[i] == 1)
-            value += power_of_2;
-        power_of_2 *= 2.0;
-    }
-    ind->x = value * SCALE;
-}
-
-/* Aplica la selección por ruleta para obtener un índice
-   de individuo en [0, MIU-1] */
-int roulette_selection(const Individual population[MIU], double sum_fit) {
-    double r = ((double)rand() / RAND_MAX) * sum_fit;
-    double acumulado = 0.0;
-    for (int i = 0; i < MIU; i++) {
-        acumulado += population[i].fitness;
-        if (acumulado >= r)
-            return i;
-    }
-    // Por si hay error numérico
-    return MIU - 1;
-}
-
-/* Cruce de un punto entre dos cromosomas parent1 y parent2, generando dos hijos child1 y child2 */
-void crossover_one_point(const Individual *parent1, const Individual *parent2, Individual *child1, Individual *child2) {
-    // Selecciona aleatoriamente un punto de cruce
-    // El rango va de 1 a NB-1 para no cruzar en los extremos
-    int point = rand() % (NB - 1) + 1;
-
-    // Copiamos la parte inicial
-    for (int i = 0; i < point; i++) {
-        child1->chromosome[i] = parent1->chromosome[i];
-        child2->chromosome[i] = parent2->chromosome[i];
-    }
-    // Copiamos la parte final
-    for (int i = point; i < NB; i++) {
-        child1->chromosome[i] = parent2->chromosome[i];
-        child2->chromosome[i] = parent1->chromosome[i];
-    }
-}
-
-/* Mutación bit a bit con probabilidad pmu */
-void mutate_chromosome(Individual *ind, double pmu) {
-    for (int i = 0; i < NB; i++) {
-        double r = (double)rand() / RAND_MAX;
-        if (r < pmu)
-            ind->chromosome[i] = !ind->chromosome[i];  // Invierte el bit
-    }
-}
 
 int main(int argc, char *argv[]) {
     srand((unsigned)time(NULL));
